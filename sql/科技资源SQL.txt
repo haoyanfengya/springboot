@@ -1,0 +1,47 @@
+机构级别分布
+SELECT
+	ii.`level`,
+	COUNT( ii.id ) AS num 
+FROM
+	qyjc_sy.industrial_innovation ii 
+GROUP BY
+	ii.`level` 
+ORDER BY
+	num DESC
+
+机构类型分布
+
+SELECT
+	ii.body_style,
+	COUNT( ii.id ) AS num 
+FROM
+	qyjc_sy.industrial_innovation ii 
+GROUP BY
+	ii.body_style 
+ORDER BY
+	num DESC
+
+机构重点实验室分布
+
+SELECT
+	ii.type_two,
+	COUNT( ii.id ) AS num 
+FROM
+	qyjc_sy.industrial_innovation ii 
+GROUP BY
+	ii.type_two 
+ORDER BY
+	num DESC
+
+机构领域分布
+
+SELECT
+	ii.type_one,
+	COUNT( ii.id ) AS num 
+FROM
+	qyjc_sy.industrial_innovation ii 
+GROUP BY
+	ii.type_one 
+ORDER BY
+	num DESC
+

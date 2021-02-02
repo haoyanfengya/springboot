@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.neu.dao.master.ExpertTalentDao">
+	<!-- 专家发布数量 -->
+	<select id="zhuanjiafabu" resultType="java.lang.Integer">
+		<!-- 
+		之前的
+		 SELECT
+		COUNT( 1 ) 
+		FROM
+		qyjc_sy.qy_expertbasdoc p
+		WHERE
+		p.is_del = 'N'
+		AND p.is_top = 'Y'
+		-->
+		
+		
+		SELECT
+
+		COUNT(1) number
+		FROM
+		qyjc_sy.qy_expertbasdoc p
+		LEFT JOIN
+		qyjc_sy.qy_shop_info s ON
+		p.orgn_id = s.ORGN_ID
+		WHERE
+		p.is_del
+		= 'N'
+		AND
+		p.is_top = 'Y'
+		
+		AND
+		p.create_date <![CDATA[ < ]]>
+		NOW()
+	</select>
+	<!--专家年增长情况-->
+	<select id="nianzengzhang" resultType="com.neu.entity.Inquire">
+		SELECT
+		COUNT( p.expert_id ) number,
+		DATE_FORMAT(p.create_date,'%Y') areas
+		FROM
+		qyjc_sy.qy_expertbasdoc p
+		WHERE
+		p.is_del = 'N'
+		AND p.is_top = 'Y'
+		AND DATE_FORMAT(p.create_date,'%Y') IS NOT NULL
+		GROUP BY
+		DATE_FORMAT(p.create_date,'%Y')
+		ORDER BY
+		DATE_FORMAT(
+		p.create_date,
+		'%Y')
+	</select>
+	<!--专家专业领域分布饼图 -->
+	<select id="zhuanyelingyu" resultType="com.neu.entity.Inquire">
+		SELECT
+IF
+	(
+		服务领域 IS NULL,
+	'领域未填写',服务领域) areas,
+	count( 1 ) number 
+FROM
+	(
+	SELECT
+		d2.DICT_VALUE AS '服务领域',
+		e.expert_id 
+	FROM
+		qyjc_sy.qy_expertbasdoc e
+		LEFT JOIN bfw_data_dict d ON d.DICT_KEY = e.industrial_field 
+		AND d.DICT_CODE = 'SERVICE_DOMAIN' 
+		AND d.DICT_LEVEL = 2
+		LEFT JOIN bfw_data_dict d2 ON d.PARENT_KEY = d2.DICT_KEY 
+		AND d2.DICT_CODE = 'SERVICE_DOMAIN' 
+	WHERE
+		is_del = 'N' 
+		AND is_top = 'Y' 
+	) a 
+GROUP BY
+	a.`服务领域` 
+ORDER BY
+	count( 1 ) DESC;
+	</select>
+	<!--技术创新服务专家 -->
+	<select id="jishuchaungxin" resultType="java.lang.Integer">
+		SELECT
+		COUNT( 1 ) 
+		FROM
+		qyjc_sy.qy_expertbasdoc p
+		WHERE
+		p.is_del ='N'
+		AND p.is_top ='Y'
+		AND
+		FIND_IN_SET('技术创新服务专家',p.type)
+	</select>
+	<!--高端顾问 -->
+	<select id="gaoduanguwen" resultType="java.lang.Integer">
+		SELECT
+		COUNT( 1 )
+		FROM
+		qyjc_sy.qy_expertbasdoc p
+		WHERE
+		p.is_del = 'N'
+		AND p.is_top = 'Y'
+		AND FIND_IN_SET('高端顾问',p.type)
+	</select>
+	<!--需求诊断专家  -->
+	<select id="xuqiuzhenduan" resultType="java.lang.Integer">
+		SELECT
+		COUNT( 1 ) 
+		FROM
+		qyjc_sy.qy_expertbasdoc p
+		WHERE
+		p.is_del ='N'
+		AND p.is_top ='Y'
+		AND FIND_IN_SET('需求诊断专家',p.type)
+	</select>
+	<!--培训讲师-->
+	<select id="peixunjiangshi" resultType="java.lang.Integer">
+		SELECT
+		COUNT( 1 ) 
+		FROM
+		qyjc_sy.qy_expertbasdoc p
+		WHERE
+		p.is_del = 'N'
+		AND p.is_top = 'Y'
+		AND FIND_IN_SET('培训讲师',p.type)
+	</select>
+	<!--问答专家 -->
+	<select id="wendazhuanjia" resultType="java.lang.Integer">
+		SELECT
+		COUNT( 1 ) 
+		FROM
+		qyjc_sy.qy_expertbasdoc p
+		WHERE
+		p.is_del = 'N'
+		AND p.is_top = 'Y'
+		AND FIND_IN_SET('问答专家',p.type)
+	</select>
+	<!--信息备案专家 -->
+	<select id="xinxibeian" resultType="java.lang.Integer">
+		SELECT
+		COUNT( 1 ) 
+		FROM
+		qyjc_sy.qy_expertbasdoc p
+		WHERE
+		p.is_del = 'N'
+		AND p.is_top = 'Y'
+		AND FIND_IN_SET('信息备案专家',p.type)
+	</select>
+	
+</mapper>

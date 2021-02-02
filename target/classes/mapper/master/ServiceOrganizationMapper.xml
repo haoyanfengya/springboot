@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >  
+<mapper namespace="com.neu.dao.master.ServiceOrganizationDao">
+<!--服务机构数量  -->
+<select id="fuwujigouyizhanshi" resultType="java.lang.Integer">
+SELECT
+	COUNT( 1 ) 
+FROM
+	qyjc_sy.qy_shop_info s
+		LEFT JOIN
+		qyjc_sy.`qy_orgn_base_info` o ON o.orgn_id=s.orgn_id
+WHERE
+	s.IF_IDENTIFY = 'Y' 
+	AND s.pub_flag = 'Y' 
+	AND (
+		s.ORGN_ID IN ( SELECT ao.ADMIN_OGRN FROM `lims-sy-1005`.admin_orgn ao ) 
+	OR s.ORGN_ID IN ( SELECT ao2.orgn FROM `lims-sy-1005`.admin_orgn ao2 WHERE LOWER( ao2.admin_ogrn ) = 'sy00' )) 
+	
+		
+	 AND o.PROVINCE <![CDATA[ <> ]]> '北京'
+
+</select>
+<!-- CMA服务机构 -->
+<select id="CMA" resultType="java.lang.Integer">
+SELECT
+	count( 1 ) 
+FROM
+	qyjc_sy.qy_shop_info s
+		LEFT JOIN
+		qyjc_sy.`qy_orgn_base_info` o ON o.orgn_id=s.orgn_id
+WHERE
+	s.IF_IDENTIFY = 'Y' 
+	AND s.pub_flag = 'Y' 
+	AND (
+		s.ORGN_ID IN ( SELECT ao.ADMIN_OGRN FROM `lims-sy-1005`.admin_orgn ao ) 
+	OR s.ORGN_ID IN ( SELECT ao2.orgn FROM `lims-sy-1005`.admin_orgn ao2 WHERE lower( ao2.admin_ogrn ) = 'sy00' )) 
+	 AND o.PROVINCE <![CDATA[ <> ]]> '北京' 
+	AND FIND_IN_SET('cma',o.ORGN_QUAL)
+
+</select>
+<!-- CNAS服务机构 -->
+<select id="CNAS" resultType="java.lang.Integer">
+SELECT
+	count( 1 ) 
+FROM
+	qyjc_sy.qy_shop_info s
+		LEFT JOIN
+		qyjc_sy.`qy_orgn_base_info` o ON o.orgn_id=s.orgn_id
+WHERE
+	s.IF_IDENTIFY = 'Y' 
+	AND s.pub_flag = 'Y' 
+	AND (
+		s.ORGN_ID IN ( SELECT ao.ADMIN_OGRN FROM `lims-sy-1005`.admin_orgn ao ) 
+	OR s.ORGN_ID IN ( SELECT ao2.orgn FROM `lims-sy-1005`.admin_orgn ao2 WHERE lower( ao2.admin_ogrn ) = 'sy00' )) 
+	 AND o.PROVINCE <![CDATA[ <> ]]>  '北京'
+	AND FIND_IN_SET('cnas',o.ORGN_QUAL)
+
+</select>
+<!-- CMA&CNAS服务机构 -->
+<select id="CMACNAS" resultType="java.lang.Integer">
+SELECT
+	count( 1 ) 
+FROM
+	qyjc_sy.qy_shop_info s
+		LEFT JOIN
+		qyjc_sy.`qy_orgn_base_info` o ON o.orgn_id=s.orgn_id
+WHERE
+	s.IF_IDENTIFY = 'Y' 
+	AND s.pub_flag = 'Y' 
+	AND (
+		s.ORGN_ID IN ( SELECT ao.ADMIN_OGRN FROM `lims-sy-1005`.admin_orgn ao ) 
+	OR s.ORGN_ID IN ( SELECT ao2.orgn FROM `lims-sy-1005`.admin_orgn ao2 WHERE lower( ao2.admin_ogrn ) = 'sy00' )) 
+	 AND o.PROVINCE <![CDATA[ <> ]]> '北京' 
+	AND (FIND_IN_SET('cnas',o.ORGN_QUAL) AND FIND_IN_SET('cma',o.ORGN_QUAL))
+</select>
+<!-- 服务机构机构类型分布 -->
+<select id="fwjgTypeDistribution" resultType="com.neu.entity.Inquire">
+SELECT
+	COUNT(o.ORGN_ID) number,
+	kv.DICT_VALUE areas
+FROM
+	qyjc_sy.qy_shop_info s
+		LEFT JOIN
+		qyjc_sy.`qy_orgn_base_info` o ON o.orgn_id=s.orgn_id
+	LEFT JOIN(
+		SELECT
+	DICT_KEY,
+	DICT_VALUE
+FROM
+	qyjc_sy.bfw_data_dict 
+WHERE
+	DICT_CODE = "ORGN_NATURE"  
+	) kv ON o.ORGN_NATURE = kv.DICT_KEY
+WHERE
+	s.IF_IDENTIFY = 'Y' 
+	AND s.pub_flag = 'Y' 
+	AND (
+		s.ORGN_ID IN ( SELECT ao.ADMIN_OGRN FROM `lims-sy-1005`.admin_orgn ao ) 
+	OR s.ORGN_ID IN ( SELECT ao2.orgn FROM `lims-sy-1005`.admin_orgn ao2 WHERE LOWER( ao2.admin_ogrn ) = 'sy00' )) 
+	 AND o.PROVINCE <![CDATA[ <> ]]> '北京' 
+	GROUP BY kv.DICT_VALUE
+	ORDER BY COUNT(o.ORGN_ID) DESC
+
+</select>
+<!--服务机构区域分布饼图-->
+<select id="RegionalDistribution"  resultType="com.neu.entity.Inquire">
+SELECT
+	COUNT( o.ORGN_ID ) number,
+	o.DISTRICT areas
+FROM
+	qyjc_sy.qy_shop_info s
+		LEFT JOIN
+		qyjc_sy.`qy_orgn_base_info` o ON o.orgn_id=s.orgn_id
+WHERE
+	s.IF_IDENTIFY = 'Y' 
+	AND s.pub_flag = 'Y' 
+	AND (
+		s.ORGN_ID IN ( SELECT ao.ADMIN_OGRN FROM `lims-sy-1005`.admin_orgn ao ) 
+	OR s.ORGN_ID IN ( SELECT ao2.orgn FROM `lims-sy-1005`.admin_orgn ao2 WHERE LOWER( ao2.admin_ogrn ) = 'sy00' )) 
+	 AND o.PROVINCE <![CDATA[ <> ]]> '北京'  
+GROUP BY
+	o.DISTRICT 
+ORDER BY
+	COUNT( o.ORGN_ID ) DESC
+</select>
+<!-- 服务机构服务类型分布饼图 -->
+<select id="Servicetype" resultType="com.neu.entity.Inquire">
+SELECT
+	COUNT( o.ORGN_ID ) number,
+	IF(kv.DICT_VALUE IS NULL,'机构未填写',kv.DICT_VALUE) AS areas
+FROM
+	qyjc_sy.qy_shop_info s
+		LEFT JOIN
+		qyjc_sy.`qy_orgn_base_info` o ON o.orgn_id=s.orgn_id
+	LEFT JOIN qyjc_sy.qy_orgn_info_common c ON o.ORGN_ID = c.ORGN_ID
+	LEFT JOIN(
+	SELECT
+	DICT_KEY,
+	DICT_VALUE 
+FROM
+	`qyjc_sy`.bfw_data_dict 
+WHERE
+	DICT_CODE = "SERVICE_TYPE_QY" 
+	) kv ON c.INDUSTRY_CATEGORY = kv.DICT_KEY
+WHERE
+	s.IF_IDENTIFY = 'Y' 
+	AND s.pub_flag = 'Y' 
+	AND (
+		s.ORGN_ID IN ( SELECT ao.ADMIN_OGRN FROM `lims-sy-1005`.admin_orgn ao ) 
+	OR s.ORGN_ID IN ( SELECT ao2.orgn FROM `lims-sy-1005`.admin_orgn ao2 WHERE LOWER( ao2.admin_ogrn ) = 'sy00' ))
+ AND o.PROVINCE <![CDATA[ <> ]]> '北京'  	
+	
+GROUP BY
+	kv.DICT_VALUE
+ORDER BY
+	COUNT( o.ORGN_ID ) DESC
+
+</select>
+<!-- 服务机构服务领域分布 -->
+<select id="ServiceArea" resultType="com.neu.entity.Inquire">
+SELECT
+	count( o.ORGN_ID )  number,
+	kv.DICT_VALUE areas
+FROM
+	qyjc_sy.qy_shop_info s
+		LEFT JOIN
+		qyjc_sy.`qy_orgn_base_info` o ON o.orgn_id=s.orgn_id
+	LEFT JOIN qyjc_sy.qy_orgn_info_common c ON o.ORGN_ID = c.ORGN_ID
+	LEFT JOIN(
+	SELECT
+	DICT_KEY,
+	DICT_VALUE 
+FROM
+	bfw_data_dict 
+WHERE
+	DICT_CODE = "SERVICE_DOMAIN" 
+	AND DICT_LEVEL = 1  
+	) kv ON c.INDUSTRY_FIELD = kv.DICT_KEY
+WHERE
+	s.IF_IDENTIFY = 'Y' 
+	AND s.pub_flag = 'Y' 
+	AND (
+		s.ORGN_ID IN ( SELECT ao.ADMIN_OGRN FROM `lims-sy-1005`.admin_orgn ao ) 
+	OR s.ORGN_ID IN ( SELECT ao2.orgn FROM `lims-sy-1005`.admin_orgn ao2 WHERE lower( ao2.admin_ogrn ) = 'sy00' )) 
+	AND o.PROVINCE <![CDATA[ <> ]]> '北京' 
+GROUP BY
+	kv.DICT_VALUE
+ORDER BY
+	count( o.ORGN_ID ) DESC
+</select>
+</mapper>

@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.neu.dao.master.ServiceItemsDao">
+<!-- 服务类型分布 -->
+	<select id="ServiceType" resultType="com.neu.entity.Inquire">
+		SELECT
+		
+		IF(d.DICT_VALUE IS NULL,'类型未填写',d.DICT_VALUE) areas,
+		COUNT( 1 ) number
+		FROM
+		qyjc_sy.qy_product_info p
+		LEFT JOIN qyjc_sy.qy_shop_info s ON p.SHOP_ID = s.SHOP_ID
+		JOIN bfw_data_dict d ON d.DICT_KEY = p.SERVICE_TYPE
+		WHERE
+		s.pub_flag = 'Y'
+		AND s.IF_IDENTIFY = 'Y'
+		AND p.If_REMOVE = 'N'
+		AND p.ONSALE_FLAG = 'Y'
+		AND d.DICT_CODE = 'SERVICE_TYPE_QY'
+		
+		GROUP BY
+		p.SERVICE_TYPE
+		ORDER BY
+		COUNT( 1 ) DESC;
+	</select>
+	<!-- 服务领域分布 -->
+	<select id="ServiceArea" resultType="com.neu.entity.Inquire">
+		SELECT
+		IF(服务领域 IS NULL ,'机构未填写',服务领域)areas,
+		count( 1 ) number
+		FROM
+		(
+		(
+		SELECT
+		d.DICT_VALUE AS '服务领域',
+		p.PRODUCT_ID
+		FROM
+		qyjc_sy.qy_product_info p
+		LEFT JOIN qyjc_sy.qy_shop_info s ON p.SHOP_ID = s.SHOP_ID
+		JOIN bfw_data_dict d ON d.DICT_KEY = p.SERVICE_FIELD
+		WHERE
+		s.pub_flag = 'Y'
+		AND s.IF_IDENTIFY = 'Y'
+		AND p.If_REMOVE = 'N'
+		AND p.ONSALE_FLAG = 'Y'
+		AND d.DICT_CODE = 'SERVICE_DOMAIN'
+		AND d.DICT_LEVEL = 1
+		
+		) UNION
+		(
+		SELECT
+		d2.DICT_VALUE AS '服务领域',
+		p.PRODUCT_ID
+		FROM
+		qyjc_sy.qy_product_info p
+		LEFT JOIN qyjc_sy.qy_shop_info s ON p.SHOP_ID = s.SHOP_ID
+		JOIN bfw_data_dict d ON d.DICT_KEY = p.SERVICE_FIELD
+		AND d.DICT_CODE = 'SERVICE_DOMAIN'
+		JOIN bfw_data_dict d2 ON d.PARENT_KEY = d2.DICT_KEY
+		AND d2.DICT_CODE = 'SERVICE_DOMAIN'
+		WHERE
+		s.pub_flag = 'Y'
+		AND s.IF_IDENTIFY = 'Y'
+		AND p.If_REMOVE = 'N'
+		AND p.ONSALE_FLAG = 'Y'
+		AND d.DICT_LEVEL = 2
+	
+		) UNION
+		(
+		SELECT
+		d3.DICT_VALUE AS '服务领域',
+		p.PRODUCT_ID
+		FROM
+		qyjc_sy.qy_product_info p
+		LEFT JOIN qyjc_sy.qy_shop_info s ON p.SHOP_ID = s.SHOP_ID
+		JOIN bfw_data_dict d ON d.DICT_KEY = p.SERVICE_FIELD
+		AND d.DICT_CODE = 'SERVICE_DOMAIN'
+		JOIN bfw_data_dict d2 ON d.PARENT_KEY = d2.DICT_KEY
+		AND d2.DICT_CODE = 'SERVICE_DOMAIN'
+		JOIN bfw_data_dict d3 ON d2.PARENT_KEY = d3.DICT_KEY
+		AND d3.DICT_CODE = 'SERVICE_DOMAIN'
+		WHERE
+		s.pub_flag = 'Y'
+		AND s.IF_IDENTIFY = 'Y'
+		AND p.If_REMOVE = 'N'
+		AND p.ONSALE_FLAG = 'Y'
+		AND d.DICT_LEVEL = 3
+		
+		)
+		) a
+		GROUP BY
+		a.`服务领域`
+		ORDER BY
+		count( 1 ) DESC;
+	</select>
+	<!-- 服务项目年增长情况 -->
+	<select id="Annualgrowth" resultType="com.neu.entity.Inquire">
+		SELECT
+		date_format( p.create_time, '%Y' ) areas,
+		count( 1 ) number
+		FROM
+		qyjc_sy.qy_product_info p
+		LEFT JOIN qyjc_sy.qy_shop_info s ON p.SHOP_ID = s.SHOP_ID
+		WHERE
+		s.pub_flag = 'Y'
+		AND s.IF_IDENTIFY = 'Y'
+		AND p.If_REMOVE = 'N'
+		AND p.ONSALE_FLAG = 'Y'
+		GROUP BY
+		date_format( p.create_time, '%Y' )
+		ORDER BY
+		date_format( p.create_time, '%Y' )
+	</select>
+	<!-- 服务项目月增长情况 -->
+	<select id="Monthlygrowth" resultType="com.neu.entity.Inquire">
+	SELECT
+ date_format( p.create_time, '%Y-%m' ) areas,
+ count( 1 ) number 
+FROM
+ qyjc_sy.qy_product_info p
+ LEFT JOIN qyjc_sy.qy_shop_info s ON p.SHOP_ID = s.SHOP_ID 
+WHERE
+ s.pub_flag = 'Y' 
+ AND s.IF_IDENTIFY = 'Y' 
+ AND p.IF_REMOVE = 'N' 
+ AND p.ONSALE_FLAG = 'Y' 
+ AND p.create_time >= str_to_date(
+  CONCAT ( date_format( SUBDATE( now( ), 365 ), '%Y' ), date_format( now( ), '-%m' ), '-01' ),
+  '%Y-%m-%d' 
+ ) 
+GROUP BY
+ date_format( p.create_time, '%Y-%m' ) 
+ORDER BY
+ date_format( p.create_time, '%Y-%m' )
+	
+	</select>
+	<!--服务项目发布数量-->
+	<select id="Agencyhasshown" resultType="java.lang.Integer">
+	SELECT
+		count( 1 ) 
+		FROM
+		qyjc_sy.qy_product_info p
+		LEFT JOIN qyjc_sy.qy_shop_info s ON p.SHOP_ID = s.SHOP_ID
+		WHERE
+		s.pub_flag = 'Y'
+		AND s.IF_IDENTIFY = 'Y'
+		AND p.IF_REMOVE = 'N'
+		AND p.ONSALE_FLAG = 'Y'
+	</select>
+</mapper>

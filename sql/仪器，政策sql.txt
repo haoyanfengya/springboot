@@ -1,0 +1,60 @@
+-- 仪器
+SELECT
+CASE
+		LOWER( b.orgn_nature ) 
+		WHEN 'gdyx' THEN
+		'高等院校' 
+		WHEN 'kyys' THEN
+		'科研院所' 
+		WHEN 'qy' THEN
+		'企业（含转制院所）' ELSE '' 
+	END areas,
+	COUNT( 1 ) number 
+FROM
+	qyjc_sy.qy_orgn_instr p
+	LEFT JOIN qyjc_sy.qy_shop_info s ON p.SHOP_ID = s.SHOP_ID
+	LEFT JOIN qyjc_sy.qy_orgn_base_info b ON b.orgn_id = s.orgn_id 
+WHERE
+	s.pub_flag = 'Y' 
+	AND s.IF_IDENTIFY = 'Y' 
+	AND p.IS_REMOVED = 'N' 
+	AND p.ONSALE_FLAG = 'Y' 
+	AND b.orgn_nature IS NOT NULL 
+GROUP BY
+	b.orgn_nature 
+ORDER BY
+	COUNT( 1 ) DESC;
+--已发布政策数量
+SELECT
+	COUNT( p.id ) 
+FROM
+	tjpt.site_policy_rule p 
+WHERE
+	p.is_show = 0 
+	AND p.del_flag = 0
+
+-- 政策类型分布
+	SELECT
+	d.`label` as 'value',
+	count(1)
+FROM
+	tjpt.site_policy_rule p
+	LEFT JOIN tjpt.sys_dict d ON d.`value` = p.policy_type 
+WHERE
+	d.type = 'policy_type' 
+	AND p.is_show = 0 
+	AND p.del_flag = 0 
+GROUP BY
+	p.policy_type
+	
+-- 政策年增长	
+	SELECT
+	year(p.public_date) as 'value',
+	count(1)
+FROM
+	tjpt.site_policy_rule p
+WHERE
+	 p.is_show = 0 
+	AND p.del_flag = 0 
+GROUP BY
+	year(p.public_date)

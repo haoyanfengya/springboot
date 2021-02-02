@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.neu.dao.master.RegisteredBusinessDao">
+	<!-- 总注册用户数 -->
+	<select id="RegisteredUsers" resultType="java.lang.Integer">
+		SELECT COUNT(1)
+		FROM qyjc_sy.qy_user_info q
+		 WHERE q.IF_REMOVED ='N'
+</select>
+<!-- 总激活用户数 -->
+<select id="ActivateUser" resultType="java.lang.Integer">
+select count(1)
+from qy_user_info q 
+left  join  qy_user_company c on  q.USER_ID=c.USER_ID
+left  join  qy_user_team t on  q.USER_ID=t.USER_ID
+WHERE q.IF_REMOVED ='N' 
+and (t.IFEXAMINE='Y' or c.IFEXAMINE='Y')
+</select>
+<!-- 企业激活用户数 -->
+<select id="qiyeActivateUser" resultType="java.lang.Integer">
+
+select count(1) 
+ from qy_user_info q 
+left  join  qy_user_company c on  q.USER_ID=c.USER_ID 
+WHERE q.IF_REMOVED ='N' 
+and c.IFEXAMINE='Y' 
+</select>
+<!-- 创业团队激活用户数 -->
+<select id="teamActivateUser" resultType="java.lang.Integer">
+select count(1)
+from qy_user_info q 
+left  join  qy_user_team t on  q.USER_ID=t.USER_ID 
+WHERE q.IF_REMOVED ='N' 
+and t.IFEXAMINE='Y' 
+</select>
+<!-- 注册用户类型分布 -->
+<select id="TypeDistribution" resultType="com.neu.entity.Inquire">
+SELECT
+ CASE WHEN c.id IS NOT NULL THEN '企业'
+  WHEN t.id IS NOT NULL THEN '创业团队'
+  WHEN c.id IS NULL AND t.id IS  NULL THEN  '未补全信息用户'
+  END
+ AS areas,COUNT(1) AS number
+FROM
+ qy_user_info q
+ LEFT JOIN qy_user_company c ON q.USER_ID = c.USER_ID
+ LEFT JOIN qy_user_team t ON q.USER_ID = t.USER_ID 
+WHERE
+ q.IF_REMOVED = 'N' 
+GROUP BY areas
+</select>
+<!-- 已激活企业认定情况 -->
+<select id="ActivatedEnterprise" resultType="com.neu.entity.Inquire">
+SELECT
+CASE SUBSTRING_INDEX(
+  SUBSTRING_INDEX( LEFT ( c.ORGN_IDENTIFY, CHAR_LENGTH( c.ORGN_IDENTIFY )- 1 ), ';', topic.help_topic_id + 1 ) ,
+ ';',- 1 
+) 
+WHEN 'ORGN_RECOGNITION01' THEN '高新技术产业'
+WHEN 'ORGN_RECOGNITION06' THEN '市科技型企业'
+WHEN 'ORGN_RECOGNITION02' THEN '市小巨人企业'
+WHEN 'ORGN_RECOGNITION03' THEN '市小巨人培育企业'
+WHEN 'ORGN_RECOGNITION05' THEN '市高新技术培育企业'
+WHEN 'ORGN_RECOGNITION99' THEN '以上都不是'
+WHEN 'ORGN_RECOGNITION04' THEN '区小巨人企业'
+
+END 
+AS areas
+,
+COUNT(1) AS number
+FROM
+ qy_user_info q
+
+ LEFT JOIN qy_user_company c ON q.USER_ID = c.USER_ID
+  JOIN mysql.help_topic topic ON topic.help_topic_id <![CDATA[ < ]]> (
+  LENGTH( LEFT ( c.ORGN_IDENTIFY, CHAR_LENGTH( c.ORGN_IDENTIFY )- 1 ) ) - LENGTH( REPLACE ( LEFT ( c.ORGN_IDENTIFY, CHAR_LENGTH(c.ORGN_IDENTIFY )- 1 ), ';', '' ) ) + 1 
+) 
+ 
+WHERE
+ q.IF_REMOVED = 'N' AND c.IFEXAMINE='Y'
+AND SUBSTRING_INDEX(
+  SUBSTRING_INDEX( LEFT ( c.ORGN_IDENTIFY, CHAR_LENGTH( c.ORGN_IDENTIFY )- 1 ), ';', topic.help_topic_id + 1 ) ,
+ ';',- 1 
+) <![CDATA[ <> ]]>''
+ GROUP BY areas
+ order by number desc
+</select>
+<!-- 年企业用户情况 -->
+<select id="EnterpriseUsers" resultType="com.neu.entity.Inquire">
+SELECT
+ COUNT( 1 ) AS number,
+ COUNT( CASE WHEN c.IFEXAMINE = 'Y' THEN 1 END ) AS number2,
+ YEAR ( q.REG_DATE ) AS areas 
+FROM
+ qy_user_info q
+ JOIN qy_user_company c ON q.USER_ID = c.USER_ID 
+WHERE
+ q.IF_REMOVED = 'N' 
+GROUP BY
+ YEAR ( q.REG_DATE )
+</select>
+<!-- 月企业用户情况 -->
+<select id="CorporateUsers" resultType="com.neu.entity.Inquire">
+SELECT 
+ COUNT( 1 ) AS number,
+ COUNT( CASE WHEN c.IFEXAMINE = 'Y' THEN 1 END ) AS number2 ,
+ DATE_FORMAT(q.REG_DATE,'%Y-%m')AS areas
+FROM
+ qy_user_info q
+ JOIN qy_user_company c ON q.USER_ID = c.USER_ID
+WHERE
+ q.IF_REMOVED = 'N' 
+ AND YEAR ( q.REG_DATE )= 2019  
+GROUP BY
+ MONTH (
+ q.REG_DATE)
+
+</select>
+<!-- 年注册用户增长情况 -->
+<select id="UserGrowth" resultType="com.neu.entity.Inquire"> 
+
+SELECT
+ COUNT( 1 ) AS number,
+ COUNT( CASE WHEN c.IFEXAMINE = 'Y' OR t.IFEXAMINE = 'Y' THEN 1 END ) AS number2 ,
+  YEAR ( q.REG_DATE ) AS areas
+ FROM
+  qy_user_info q
+  LEFT JOIN qy_user_company c ON q.USER_ID = c.USER_ID 
+  LEFT JOIN qy_user_team t ON q.USER_ID = t.USER_ID  
+ WHERE
+  q.IF_REMOVED = 'N' 
+ GROUP BY
+ YEAR (
+ q.REG_DATE)
+</select>
+<!-- 月注册用户增长情况 -->
+<select id="yueRegisteredUsers" resultType="com.neu.entity.Inquire">
+
+SELECT 
+ count( 1 ) AS number,
+ count( CASE WHEN c.IFEXAMINE = 'Y' OR t.IFEXAMINE = 'Y' THEN 1 END ) AS number2 ,
+ MONTH ( q.REG_DATE ) AS areas
+FROM
+ qy_user_info q
+ LEFT JOIN qy_user_company c ON q.USER_ID = c.USER_ID
+ LEFT JOIN qy_user_team t ON q.USER_ID = t.USER_ID 
+WHERE
+ q.IF_REMOVED = 'N' 
+ AND Year ( q.REG_DATE )= 2019 
+GROUP BY
+ MONTH (
+ q.REG_DATE)
+</select>
+<!-- 已激活企业用户区域分布饼图 -->
+<select id="Division" resultType="com.neu.entity.Inquire">
+SELECT
+    CASE
+ WHEN c.ZC_CITY != '沈阳市' THEN
+  '其他区县' 
+ WHEN c.ZC_DISTRICT='' THEN '区域未填写'
+  ELSE  
+  ZC_DISTRICT 
+ END AS areas,
+ COUNT(1) AS number
+ FROM
+  qy_user_info q
+  LEFT JOIN qy_user_company c ON q.USER_ID = c.USER_ID 
+ WHERE
+  q.IF_REMOVED = 'N' 
+  AND c.IFEXAMINE = 'Y' 
+
+GROUP BY
+ areas
+ order by number desc
+</select>
+<!-- 已激活企业类型饼图 -->
+<select id="typesof" resultType="com.neu.entity.Inquire">
+SELECT
+ CASE ORGN_TYPE 
+ WHEN 'ORGN_NATURE01' THEN '有限责任公司'
+ WHEN 'ORGN_NATURE02' THEN '股份有限公司'
+ WHEN 'ORGN_NATURE03' THEN '国有独资公司'
+ WHEN 'ORGN_NATURE04' THEN '个人独资公司'
+ WHEN 'ORGN_NATURE05' THEN '合伙企业'
+ WHEN 'ORGN_NATURE06' THEN '个体工商户'
+ WHEN 'ORGN_NATURE07' THEN '外商投资企业'
+ WHEN 'ORGN_NATURE08' THEN '私营企业'
+ WHEN 'ORGN_NATURE09' THEN '全民所有制企业'
+ WHEN 'ORGN_NATURE10' THEN '集体所有制企业'
+ WHEN 'ORGN_NATURE99' THEN '其他'
+ WHEN ORGN_TYPE IS NULL THEN '类型未填写'
+ END AS areas
+ 
+ ,COUNT(1) AS number
+ FROM
+  qy_user_info q
+  LEFT JOIN qy_user_company c ON q.USER_ID = c.USER_ID 
+ WHERE
+  q.IF_REMOVED = 'N' 
+  AND c.IFEXAMINE = 'Y' 
+  AND ORGN_TYPE<![CDATA[ <> ]]>''
+GROUP BY
+areas
+ORDER BY COUNT(1) 
+</select>
+<!-- 年创业团队情况 -->
+<select id="StartupTeam" resultType="com.neu.entity.Inquire">
+SELECT YEAR
+ ( q.REG_DATE ) AS areas,
+ COUNT( 1 ) AS number,
+ COUNT( CASE WHEN t.IFEXAMINE = 'Y'  THEN 1 END ) AS number2 
+ FROM
+  qy_user_info q
+  LEFT JOIN qy_user_team t ON q.USER_ID = t.USER_ID 
+ WHERE
+  q.IF_REMOVED = 'N' AND q.USER_TYPE='team'
+ GROUP BY
+ YEAR (
+ q.REG_DATE)
+</select>
+<!-- 已激活创业团队分布 -->
+<select id="StartupTeamDistribution" resultType="com.neu.entity.Inquire">
+SELECT
+TX_DISTRICT AS areas,COUNT(1) AS number
+ FROM
+  qy_user_info q
+  LEFT JOIN qy_user_team t ON q.USER_ID = t.USER_ID 
+ WHERE
+  q.IF_REMOVED = 'N' 
+  AND t.IFEXAMINE = 'Y' 
+GROUP BY
+t.TX_PROVINCE,t.TX_CITY,TX_DISTRICT
+</select>
+</mapper>

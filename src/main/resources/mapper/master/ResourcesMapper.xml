@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.neu.dao.master.ResourcesDao">
+    <!-- 机构级别分布 -->
+    <select id="resourceslevel" resultType="com.neu.entity.Inquire">
+        SELECT
+            ii.`level` AS areas,
+            COUNT( ii.id ) AS number
+        FROM
+            qyjc_sy.industrial_innovation ii
+        GROUP BY
+            ii.`level`
+        ORDER BY
+            number ASC
+    </select>
+    <!-- 机构类型分布 -->
+    <select id="resourcestype" resultType="com.neu.entity.Inquire">
+        SELECT
+            ii.body_style AS areas,
+            COUNT( ii.id ) AS number
+        FROM
+            qyjc_sy.industrial_innovation ii
+        GROUP BY
+            ii.body_style
+        ORDER BY
+            number ASC
+    </select>
+    <!-- 机构领域分布 -->
+    <select id="resourcesarea" resultType="com.neu.entity.Inquire">
+        SELECT
+            ii.type_one AS areas,
+            COUNT( ii.id ) AS number
+        FROM
+            qyjc_sy.industrial_innovation ii
+        GROUP BY
+            ii.type_one
+        ORDER BY
+            number ASC
+    </select>
+    <!-- 机构重点实验室分布 -->
+    <select id="resourceslab" resultType="com.neu.entity.Inquire">
+        SELECT
+            ii.type_two AS areas,
+            COUNT( ii.id ) AS number
+        FROM
+            qyjc_sy.industrial_innovation ii
+        GROUP BY
+            ii.type_two
+        ORDER BY
+            number ASC
+
+    </select>
+
+</mapper>

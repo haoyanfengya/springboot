@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.neu.dao.master.LargeInstrumentDao">
+<!--仪器发布 -->
+	<select id="yiqifabu" resultType="java.lang.Integer">
+		SELECT
+		count( 1 )
+		FROM
+		qyjc_sy.qy_orgn_instr p
+		LEFT JOIN qyjc_sy.qy_shop_info s
+		ON p.SHOP_ID = s.SHOP_ID
+		WHERE
+		s.pub_flag = 'Y'
+		AND s.IF_IDENTIFY = 'Y'
+		AND p.IS_REMOVED = 'N'
+		AND p.ONSALE_FLAG = 'Y'
+	</select>
+	<!--仪器原值-->
+	<select id="yiqiyuanzhi" resultType="java.lang.Double">
+		SELECT
+		round( sum(
+		ORIN_PRICE_RMB ), 2 ) 
+		FROM
+		qyjc_sy.qy_orgn_instr p
+		LEFT JOIN
+		qyjc_sy.qy_shop_info s ON p.SHOP_ID = s.SHOP_ID
+		WHERE
+		s.pub_flag = 'Y'
+		AND s.IF_IDENTIFY = 'Y'
+		AND p.IS_REMOVED = 'N'
+		AND p.ONSALE_FLAG = 'Y'
+	</select>
+	<!--仪器领域分布-->
+	<select id="lingyufenbu" resultType="com.neu.entity.Inquire">
+		SELECT
+ IF(p.`subject` IS NULL,'领域未填写',p.`subject`) areas,
+ COUNT( 1 ) number 
+FROM
+ qyjc_sy.qy_orgn_instr p
+ LEFT JOIN qyjc_sy.qy_shop_info s ON p.SHOP_ID = s.SHOP_ID 
+WHERE
+ s.pub_flag = 'Y' 
+ AND s.IF_IDENTIFY = 'Y' 
+ AND p.IS_REMOVED = 'N' 
+ AND p.ONSALE_FLAG = 'Y' 
+ AND p.`subject` IS NOT NULL 
+GROUP BY
+ p.`subject` 
+ORDER BY
+ COUNT( 1 ) DESC;
+	</select>
+	<!--仪器分类饼图-->
+	<select id="yiqifenlei" resultType="com.neu.entity.Inquire">
+		SELECT
+ if(d.DICT_VALUE IS NULL,'分类未填写',d.DICT_VALUE) areas,
+ COUNT( 1 )number 
+FROM
+ qyjc_sy.qy_orgn_instr p
+ LEFT JOIN qyjc_sy.qy_shop_info s ON p.SHOP_ID = s.SHOP_ID
+ JOIN bfw_data_dict d ON d.DICT_KEY = SUBSTR( p.ORIN_NEW_CODE FROM 1 FOR 2 ) 
+WHERE
+ s.pub_flag = 'Y' 
+ AND s.IF_IDENTIFY = 'Y' 
+ AND p.IS_REMOVED = 'N' 
+ AND p.ONSALE_FLAG = 'Y' 
+
+ AND d.DICT_LEVEL = 1 
+ AND d.DICT_CODE = 'equipment_category' 
+GROUP BY
+ SUBSTR( p.ORIN_NEW_CODE FROM 1 FOR 2 ) 
+ORDER BY
+ COUNT( 1 ) DESC
+	</select>
+	<!--大型仪器年增长情况-->
+	<select id="nianzengzhang" resultType="com.neu.entity.Inquire">
+		SELECT
+		date_format(
+		p.create_date, '%Y' ) areas,
+		count( 1 ) number
+		FROM
+		qyjc_sy.qy_orgn_instr p
+		LEFT JOIN qyjc_sy.qy_shop_info s ON p.SHOP_ID =
+		s.SHOP_ID
+		WHERE
+		s.pub_flag = 'Y'
+		AND s.IF_IDENTIFY = 'Y'
+		AND p.IS_REMOVED
+		= 'N'
+		AND p.ONSALE_FLAG = 'Y'
+		GROUP BY
+		date_format( p.create_date, '%Y' )
+		ORDER BY
+		date_format( p.create_date, '%Y' )
+	</select>
+<!--	&lt;!&ndash;大型仪器月增长情况&ndash;&gt;-->
+<!--	<select id="yuezengzhang" resultType="com.neu.entity.Inquire">-->
+<!--		SELECT-->
+<!--		date_format(-->
+<!--		p.create_date, '%Y-%m' ) areas,-->
+<!--		count( 1 ) number-->
+<!--		FROM-->
+<!--		qyjc_sy.qy_orgn_instr p-->
+<!--		LEFT JOIN qyjc_sy.qy_shop_info s ON p.SHOP_ID =-->
+<!--		s.SHOP_ID-->
+<!--		WHERE-->
+<!--		s.pub_flag = 'Y'-->
+<!--		AND s.IF_IDENTIFY = 'Y'-->
+<!--		AND p.IS_REMOVED-->
+<!--		= 'N'-->
+<!--		AND p.ONSALE_FLAG = 'Y'-->
+<!--		AND p.create_date >= str_to_date(-->
+<!--		CONCAT (-->
+<!--		date_format( SUBDATE( now( ), 365 ), '%Y' ), date_format( now( ),-->
+<!--		'-%m' ), '-01' ),-->
+<!--		'%Y-%m-%d'-->
+<!--		)-->
+<!--		GROUP BY-->
+<!--		date_format( p.create_date,-->
+<!--		'%Y-%m' )-->
+<!--		ORDER BY-->
+<!--		date_format( p.create_date, '%Y-%m' )-->
+<!--	</select>-->
+	<!--仪器按机构类型分类情况-->
+	<select id="jigouleixingfenbu" resultType="com.neu.entity.Inquire">
+		SELECT
+			CASE
+				LOWER( b.orgn_nature )
+				WHEN 'gdyx' THEN
+					'高等院校'
+				WHEN 'kyys' THEN
+					'科研院所'
+				WHEN 'qy' THEN
+					'企业（含转制院所）' ELSE '其他'
+				END areas,
+			COUNT( 1 ) number
+		FROM
+			qyjc_sy.qy_orgn_instr p
+				LEFT JOIN qyjc_sy.qy_shop_info s ON p.SHOP_ID = s.SHOP_ID
+				LEFT JOIN qyjc_sy.qy_orgn_base_info b ON b.orgn_id = s.orgn_id
+		WHERE
+			s.pub_flag = 'Y'
+		  AND s.IF_IDENTIFY = 'Y'
+		  AND p.IS_REMOVED = 'N'
+		  AND p.ONSALE_FLAG = 'Y'
+		  AND b.orgn_nature IS NOT NULL
+		GROUP BY
+			areas
+		ORDER BY
+			number DESC;
+	</select>
+		<!--仪器来源分布饼图-->
+	<select id="laiyuanfenbu" resultType="com.neu.entity.Inquire">
+		SELECT
+		instrSource areas,
+		count( 1 ) number
+		FROM
+		qyjc_sy.qy_orgn_instr p
+		LEFT JOIN
+		qyjc_sy.qy_shop_info s ON p.SHOP_ID = s.SHOP_ID
+		WHERE
+		s.pub_flag = 'Y'
+		AND s.IF_IDENTIFY = 'Y'
+		AND p.IS_REMOVED = 'N'
+		AND p.ONSALE_FLAG = 'Y'
+		AND instrSource IS NOT NULL
+		GROUP BY
+		instrSource
+		ORDER BY
+		count( 1 ) DESC
+	</select>
+<!--仪器购置目的分布饼图-->
+	<select id="gouzhimudi" resultType="com.neu.entity.Inquire">
+		SELECT
+		purpose areas,
+		count( 1 ) number
+		FROM
+		qyjc_sy.qy_orgn_instr p
+		LEFT JOIN qyjc_sy.qy_shop_info s ON p.SHOP_ID = s.SHOP_ID
+		WHERE
+		s.pub_flag = 'Y'
+		AND s.IF_IDENTIFY = 'Y'
+		AND p.IS_REMOVED = 'N'
+		AND p.ONSALE_FLAG = 'Y'
+		AND purpose IS NOT NULL
+		GROUP BY
+		purpose
+		ORDER BY
+		count( 1 ) DESC
+	</select>
+	
+</mapper>

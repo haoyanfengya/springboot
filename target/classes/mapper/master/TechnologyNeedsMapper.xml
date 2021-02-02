@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.neu.dao.master.TechnologyNeedsDao">
+	<!-- 需求发布数量 -->
+	<select id="xuqiufabu" resultType="java.lang.Integer">
+		SELECT
+		COUNT( 1 ) 
+		FROM
+		qyjc_sy.qy_user_demand d
+		WHERE
+		d.IF_REMOVE = 'N'
+		AND d.posted_state =
+		'Y'
+	</select>
+	<!--需求月增长情况 -->
+	<select id="yuezengzhang" resultType="com.neu.entity.Inquire">
+		SELECT
+		COUNT(d.DEMAND_ID) number,
+		DATE_FORMAT( d.CREATE_TIME, '%Y' ) areas
+		FROM
+		qyjc_sy.qy_user_demand d
+		WHERE
+		d.IF_REMOVE = 'N'
+		AND d.posted_state = 'Y'
+		GROUP BY
+		DATE_FORMAT(
+		d.CREATE_TIME,
+		'%Y' 
+		)
+	</select>
+	<!-- 科研成果领域分布饼图 -->
+	<select id="chengguolingyu" resultType="com.neu.entity.Inquire">
+		SELECT
+		COUNT( d.DEMAND_ID
+		)  number,
+		if(kv.DICT_VALUE IS NULL,'领域未填写',kv.DICT_VALUE) areas
+		FROM
+		qyjc_sy.qy_user_demand d
+		LEFT
+		JOIN ( SELECT DICT_KEY, DICT_VALUE FROM bfw_data_dict WHERE DICT_CODE
+		= "PROJECT_DOMAIN" ) kv ON SUBSTRING( d.field, 1, 1 ) = kv.DICT_KEY
+		WHERE
+		d.IF_REMOVE = 'N'
+		AND d.posted_state = 'Y'
+		GROUP BY
+		kv.DICT_VALUE
+		ORDER BY
+		COUNT(
+		d.DEMAND_ID) DESC
+	</select>
+</mapper>

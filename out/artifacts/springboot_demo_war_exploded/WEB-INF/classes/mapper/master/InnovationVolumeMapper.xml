@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.neu.dao.master.InnovationVolumeDao">
+	<!-- 创新券申请数量 -->
+	<select id="shenqingshuliang" resultType="java.lang.Integer">
+		SELECT count(1) 
+		from kjfwb.cxj_report_apply
+		WHERE year=2019
+	</select>
+	<!--已通过申请数量 -->
+	<select id="applicationsnumber" resultType="java.lang.Integer">
+		SELECT count(1) from kjfwb.cxj_report_apply
+		WHERE year=2019
+		and STATUS='已通过'
+	</select>
+	<!--创新券申请额度 -->
+	<select id="applyofquota" resultType="java.lang.Integer">
+		SELECT count(1)*200000/10000 
+		from kjfwb.cxj_report_apply
+		WHERE year=2019
+	</select>
+	<!--创新券发放额度 -->
+	<select id="credit" resultType="java.lang.Integer">
+		SELECT sum(AMOUNTS)/10000 
+		 from
+		kjfwb.cxj_report_apply
+		WHERE year=2019
+		and `STATUS`='已通过'
+	</select>
+	<!--企业购买服务类别 -->
+	<select id="servicetype" resultType="com.neu.entity.Inquire">
+		SELECT
+		substring_index(
+		substring_index( LEFT ( a.CLASS_SERVICE,
+		char_length( a.CLASS_SERVICE )- 1 ), ';',
+		topic.help_topic_id + 1 ),
+		';',- 1
+		) AS areas,
+		count( 1 ) AS number
+		FROM
+		kjfwb.cxj_report_apply a
+		JOIN
+		mysql.help_topic topic ON topic.help_topic_id <![CDATA[ < ]]>
+		(
+		length( LEFT ( a.CLASS_SERVICE, char_length( a.CLASS_SERVICE )- 1 ) )
+		-
+		length( REPLACE ( LEFT ( a.CLASS_SERVICE, char_length(
+		a.CLASS_SERVICE
+		)- 1 ), ';', '' ) ) + 1
+		)
+		WHERE
+		YEAR = 2019
+		GROUP BY
+		areas
+		ORDER BY number DESC
+		LIMIT 0,8
+	</select>
+	<!--申请创新券企业认定情况 -->
+	<select id="findings" resultType="com.neu.entity.Inquire">
+		SELECT
+		substring_index(substring_index(
+		left(a.ORGN_IDENTIFY,char_length(a.ORGN_IDENTIFY)-1),';',
+		topic.help_topic_id + 1 ), ';',-1) AS areas
+		,count(1) as number
+		FROM
+		kjfwb.cxj_report_apply a
+		JOIN mysql.help_topic topic ON
+		topic.help_topic_id <![CDATA[ < ]]> ( length(
+		left(a.ORGN_IDENTIFY,char_length(a.ORGN_IDENTIFY)-1) ) - length(
+		REPLACE (left(a.ORGN_IDENTIFY,char_length(a.ORGN_IDENTIFY)-1), ';', ''
+		) ) + 1 )
+		WHERE
+		YEAR = 2019
+		GROUP BY
+		areas
+	</select>
+	<!--创新券申请 通过情况 -->
+	<select id="Application" resultType="com.neu.entity.Inquire">
+	<!-- 
+			这个是年-月格式的 目前宽度不够 没法用
+			SELECT a.areas,IFNULL(a.number,0) number,IFNULL(b.number,0)number2 FROM(
+
+SELECT  DATE_FORMAT(APPLY_TIME,'%Y-%m')
+		areas, COUNT(1) AS number FROM
+		kjfwb.cxj_report_apply
+		WHERE YEAR(APPLY_TIME)=2019
+		GROUP BY MONTH(APPLY_TIME)
+		)a LEFT JOIN( 
+		
+		
+		SELECT DATE_FORMAT(APPLY_TIME,'%Y-%m') areas,
+		COUNT(1) AS number FROM kjfwb.cxj_report_apply
+		WHERE YEAR(APPLY_TIME)=2019
+		AND
+		`STATUS`='已通过'
+		GROUP BY MONTH(APPLY_TIME)
+		)b
+		ON a.areas=b.areas
+	
+	
+	 -->
+	
+	
+	
+	
+	
+	SELECT a.areas,IFNULL(a.number,0) number,IFNULL(b.number,0)number2 FROM(
+
+SELECT  MONTH(APPLY_TIME)
+		areas, COUNT(1) AS number FROM
+		kjfwb.cxj_report_apply
+		WHERE YEAR(APPLY_TIME)=2019
+		GROUP BY MONTH(APPLY_TIME)
+		)a LEFT JOIN( 
+		
+		
+		SELECT MONTH(APPLY_TIME) areas,
+		COUNT(1) AS number FROM kjfwb.cxj_report_apply
+		WHERE YEAR(APPLY_TIME)=2019
+		AND
+		`STATUS`='已通过'
+		GROUP BY MONTH(APPLY_TIME)
+		)b
+		ON a.areas=b.areas
+	
+	</select>
+	<!--创新券申请额度和发放额度 -->
+	<select id="Applyforquota" resultType="com.neu.entity.Inquire">
+	
+SELECT a.areas,a.number,
+ IFNULL(b.number,0) amount FROM
+
+
+(SELECT MONTH(APPLY_TIME)
+		areas,COUNT(1)*200000 AS number
+		FROM kjfwb.cxj_report_apply
+		WHERE YEAR=2019
+		GROUP
+		BY MONTH(APPLY_TIME)
+		
+)a LEFT JOIN (		
+		
+		
+		SELECT MONTH(APPLY_TIME) AS
+		areas,SUM(AMOUNTS) AS number FROM kjfwb.cxj_report_apply
+		WHERE YEAR=2019
+		AND
+		`STATUS`='已通过'
+		GROUP BY MONTH(APPLY_TIME))b 
+		 
+		ON a.areas=b.areas
+		ORDER BY a.areas
+	</select>
+	<!--申请创新券企业单位性质分布饼图 -->
+	<select id="Unitnature" resultType="com.neu.entity.Inquire">
+		SELECT
+		if(ORGN_TYPE IS NULL,'性质未填写',ORGN_TYPE) as areas,
+		count( 1 ) AS number
+		FROM
+		kjfwb.cxj_report_apply a
+		WHERE
+		YEAR = 2019
+		GROUP BY
+		ORGN_TYPE
+		ORDER BY number DESC
+	</select>
+	<!--申请创新券企所属区域分布饼图 -->
+	<select id="area" resultType="com.neu.entity.Inquire">
+		SELECT
+		if(REG_DISTRICT IS NULL,'区域未填写', REG_DISTRICT) as areas,
+		count( 1 ) AS number
+		FROM
+		kjfwb.cxj_report_apply a
+		WHERE
+		YEAR = 2019
+		GROUP BY
+		REG_DISTRICT
+		ORDER BY number DESC
+	</select>
+	<!--申请创新券的产业领域 -->
+	<select id="industry" resultType="com.neu.entity.Inquire">
+		SELECT
+		if(INDUSTRY_DOMAIN IS NULL,'领域未填写',INDUSTRY_DOMAIN) as areas,
+		count( 1 ) AS number
+		FROM
+		kjfwb.cxj_report_apply a
+		WHERE
+		YEAR = 2019
+		GROUP BY
+		INDUSTRY_DOMAIN
+	</select>
+</mapper>

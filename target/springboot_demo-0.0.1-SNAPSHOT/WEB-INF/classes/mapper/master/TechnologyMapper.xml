@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.neu.dao.master.TechnologyDao">
+	<!--科研成果发布数量 -->
+	<select id="fabushuliang" resultType="java.lang.Integer">
+		<!-- 
+		之前的
+		SELECT
+		count( 1 )
+		FROM
+		qyjc_sy.qy_project_result p
+		WHERE
+		p.is_del = 'N'
+		AND p.audit_status = 'Y'
+		 -->
+		 SELECT
+
+
+		COUNT(1) number
+		FROM
+		qyjc_sy.qy_project_result p
+		LEFT JOIN
+		qyjc_sy.qy_shop_info s
+		ON p.orgn_id = s.ORGN_ID
+		WHERE
+		p.is_del =
+		'N'
+		AND
+		p.audit_status = 'Y'
+
+		
+		AND
+		p.create_date <![CDATA[ < ]]>
+		NOW()
+	</select>
+	<!--科研成果月增长情况 -->
+	<select id="yuezengzhang" resultType="com.neu.entity.Inquire">
+		SELECT
+		count( p.project_id )
+		number,
+		DATE_FORMAT( p.create_date, '%Y' ) areas
+		FROM
+		qyjc_sy.qy_project_result p
+		WHERE
+		p.is_del = 'N'
+		AND p.audit_status = 'Y'
+		GROUP BY
+		DATE_FORMAT(
+		p.create_date,
+		'%Y')
+	</select>
+	<!--科研成果领域分布饼图 -->
+	<select id="lingyufenbu" resultType="com.neu.entity.Inquire">
+		SELECT
+		count( p.project_id ) number,
+		if(kv.DICT_VALUE IS NULL,'领域未填写', kv.DICT_VALUE) areas
+		FROM
+		qyjc_sy.qy_project_result p
+		LEFT JOIN ( SELECT DICT_KEY, DICT_VALUE FROM bfw_data_dict WHERE DICT_CODE
+		= "PROJECT_DOMAIN" ) kv ON SUBSTRING( p.field, 1, 1 ) = kv.DICT_KEY
+		WHERE
+		p.is_del = 'N'
+		AND p.audit_status = 'Y'
+		GROUP BY
+		kv.DICT_VALUE
+		ORDER BY
+		count( p.project_id ) DESC
+	</select>
+
+</mapper>

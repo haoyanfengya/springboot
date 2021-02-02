@@ -1,0 +1,505 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.neu.dao.master.HomeDao">
+	<!-- 条件平台服务机构数 -->
+	<select id="tjptFuwujigouShu" parameterType="java.lang.String"
+			resultType="java.lang.Integer">
+		SELECT
+		count(1) number
+		FROM
+		qyjc_sy.qy_shop_info s
+		LEFT JOIN
+		qyjc_sy.qy_orgn_base_info b
+		on b.ORGN_ID = s.ORGN_ID
+		WHERE
+		s.IF_IDENTIFY
+		= 'Y'
+		AND s.pub_flag = 'Y'
+		AND (
+		s.ORGN_ID IN (
+		SELECT
+		ao.ADMIN_OGRN
+		FROM
+		`lims-sy-1005`.admin_orgn ao
+		)
+		OR s.ORGN_ID IN (
+		SELECT
+		ao2.orgn
+		FROM
+		`lims-sy-1005`.admin_orgn ao2
+		WHERE
+		lower(ao2.admin_ogrn) =
+		'sy00'
+		)
+		)
+		<if test="condition!=null and condition!=''">
+			AND b.`DISTRICT` like #{condition}
+		</if>
+		AND b.PROVINCE NOT LIKE '%北京%'
+		and b.create_time <![CDATA[ < ]]>
+		NOW()
+
+	</select>
+	<!-- 条件平台 服务项目数 -->
+	<select id="tjptFuwuShu" parameterType="java.lang.String"
+			resultType="java.lang.Integer">
+		SELECT
+		count(1) number
+		FROM
+		qyjc_sy.qy_product_info p
+		LEFT JOIN
+		qyjc_sy.qy_shop_info s ON
+		p.SHOP_ID = s.SHOP_ID
+		LEFT JOIN
+		qyjc_sy.`qy_orgn_base_info` b ON b.orgn_id=s.orgn_id
+
+		WHERE
+		s.pub_flag = 'Y'
+		AND s.IF_IDENTIFY = 'Y'
+		AND
+		p.IF_REMOVE = 'N'
+		AND
+		p.ONSALE_FLAG = 'Y'
+		<if test="condition!=null and condition!=''">
+			AND b.`DISTRICT` like #{condition}
+		</if>
+		AND p.CREATE_TIME <![CDATA[ < ]]>
+		NOW()
+
+	</select>
+	<!-- 条件平台 大型仪器数 -->
+	<select id="tjptYiqiShu" parameterType="java.lang.String"
+			resultType="java.lang.Integer">
+		SELECT
+
+		count(1) number
+		FROM
+		qyjc_sy.qy_orgn_instr p
+		LEFT JOIN
+		qyjc_sy.qy_shop_info s ON
+		p.SHOP_ID = s.SHOP_ID
+		LEFT JOIN
+		qyjc_sy.`qy_orgn_base_info` b ON b.orgn_id=s.orgn_id
+		WHERE
+		s.pub_flag = 'Y'
+		AND s.IF_IDENTIFY = 'Y'
+		AND p.IS_REMOVED = 'N'
+		AND
+		p.ONSALE_FLAG = 'Y'
+		<if test="condition!=null and condition!=''">
+			AND b.`DISTRICT` like #{condition}
+		</if>
+		AND p.create_date <![CDATA[ < ]]>
+		NOW()
+
+	</select>
+	<!-- 每日统计 条件平台 成果数 -->
+	<select id="tjptChengguoShu" parameterType="java.lang.String"
+			resultType="java.lang.Integer">
+		SELECT
+
+
+		count(1) number
+		FROM
+		qyjc_sy.qy_project_result p
+		LEFT JOIN
+		qyjc_sy.qy_shop_info s
+		ON p.orgn_id = s.ORGN_ID
+		LEFT JOIN
+		qyjc_sy.`qy_orgn_base_info` b ON b.orgn_id=s.orgn_id
+		WHERE
+		p.is_del =
+		'N'
+		AND
+		p.audit_status = 'Y'
+
+		<if test="condition!=null and condition!=''">
+			AND b.`DISTRICT` like #{condition}
+		</if>
+		AND
+		p.create_date <![CDATA[ < ]]>
+		NOW()
+
+	</select>
+	<!-- 每日统计 条件平台 专家数 -->
+	<select id="tjptZhuanjiaShu" parameterType="java.lang.String"
+			resultType="java.lang.Integer">
+		SELECT
+
+		count(1) number
+		FROM
+		qyjc_sy.qy_expertbasdoc p
+		LEFT JOIN
+		qyjc_sy.qy_shop_info s ON
+		p.orgn_id = s.ORGN_ID
+		LEFT JOIN
+		qyjc_sy.`qy_orgn_base_info` b ON b.orgn_id=s.orgn_id
+		WHERE
+		p.is_del
+		= 'N'
+		AND
+		p.is_top = 'Y'
+		<if test="condition!=null and condition!=''">
+			AND b.`DISTRICT` like #{condition}
+		</if>
+		AND
+		p.create_date <![CDATA[ < ]]>
+		Now()
+
+	</select>
+	<!-- 条件平台 政策数 -->
+	<select id="tjptZhengceShu" parameterType="java.lang.String"
+			resultType="java.lang.Integer">
+
+		SELECT
+			COUNT( p.id )
+		FROM
+			tjpt.site_policy_rule p
+		WHERE
+			p.is_show = 0
+		  AND p.del_flag = 0
+
+	</select>
+	<!-- 注册企业数量 -->
+	<select id="enterprise" parameterType="java.lang.String"
+			resultType="java.lang.Integer">
+		SELECT
+		COUNT(1) number
+		FROM qyjc_sy.qy_user_info u
+		LEFT JOIN
+		qyjc_sy.qy_user_company c ON
+		u.USER_ID = c.USER_ID
+
+
+		WHERE
+		u.IF_REMOVED
+		= 'N'
+		<!-- AND c.IFEXAMINE = 'Y'-->
+		<!--  AND c.`ZC_CITY`LIKE '%沈阳%'-->
+		<if test="condition!=null and condition!=''">
+			AND c.`ZC_DISTRICT` like #{condition}
+		</if>
+
+	</select>
+	<!-- 科技需求数量 -->
+	<select id="gzXuqiuShu" parameterType="java.lang.String"
+			resultType="java.lang.Integer">
+		SELECT
+		COUNT(1) number
+		FROM
+		qyjc_sy.qy_user_demand d
+
+		WHERE
+
+		d.IF_REMOVE =
+		'N'
+		AND
+		d.posted_state = 'Y'
+
+		<if test="condition!=null and condition!=''">
+			AND D.`AREA` like #{condition}
+		</if>
+		AND
+		d.create_time <![CDATA[ < ]]>
+		NOW()
+
+	</select>
+	<!--条件平台cxj申请数 -->
+	<select id="tjptCxjShenqingShu" parameterType="java.lang.String"
+			resultType="java.lang.Integer">
+		<if test="condition!=null and condition!=''">
+			SELECT
+			COUNT( 1 )
+			FROM
+			(
+			SELECT
+			COUNT(1)
+			FROM
+			kjfwb.cxj_audit ca
+			JOIN
+			kjfwb.`cxj_micro_company` cmc ON cmc.`COMPANY_ID`=ca.`FOREIGN_KEY`
+			LEFT JOIN kjfwb.sys_constant_code c ON c.CODE = cmc.REG_DISTRICT
+			WHERE
+			year(ca.APPLY_TIME)=year(now())
+
+			AND IF ( c.NAME IS NULL, cmc.reg_DISTRICT, c.NAME ) like #{condition}
+			GROUP BY
+			ca.FOREIGN_KEY
+			) a
+		</if>
+		<if test="condition==null or condition==''">
+
+			SELECT count(1)
+			from kjfwb.cxj_report_apply
+			WHERE year=year(now())
+
+		</if>
+	</select>
+	<!--条件平台cxj通过数 -->
+	<select id="tjptCxjTongguoShu" parameterType="java.lang.String"
+			resultType="java.lang.Integer">
+		<if test="condition!=null and condition!=''">
+			SELECT
+			COUNT(1) number
+			FROM
+			kjfwb.cxj_audit ca
+			JOIN
+			kjfwb.`cxj_micro_company` cmc ON cmc.`COMPANY_ID`=ca.`FOREIGN_KEY`
+			LEFT JOIN kjfwb.sys_constant_code c ON c.CODE = cmc.REG_DISTRICT
+			WHERE
+			ca.`STATUS` = 'ACCEPT'
+			AND
+			year(ca.APPLY_TIME)=year(now())
+
+			AND IF ( c.NAME IS NULL, cmc.reg_DISTRICT, c.NAME ) like #{condition}
+		</if>
+		<if test="condition==null or condition==''">
+			SELECT count(1) from kjfwb.cxj_report_apply
+			WHERE year=year(now())
+			and STATUS='已通过'
+		</if>
+	</select>
+	<!--条件平台订单服务 -->
+	<select id="tjptDingdanfuwu" parameterType="java.lang.String" resultType="com.neu.entity.Inquire">
+		SELECT
+		COUNT( 1 ) number,
+		round( sum( o.PRICE ), 2 ) amount
+		FROM
+		qyjc_sy.qy_order_info o
+		LEFT JOIN qyjc_sy.qy_shop_info s ON s.SHOP_ID = o.SHOP_ID
+		LEFT JOIN qyjc_sy.qy_orgn_base_info b ON b.orgn_id = s.orgn_id
+		LEFT JOIN qyjc_sy.qy_user_info u ON u.USER_ID = o.USER_ID
+		LEFT JOIN qyjc_sy.`qy_user_company` quc ON quc.`USER_ID` = o.`USER_ID`
+		WHERE
+		o.if_remove = 'N'
+		AND o.`STATUS` NOT IN ( 'CANCELED', 'REJECTED', 'DISCONTINUED', 'ADMIN_VOID' )
+		AND o.CREATE_TIME <![CDATA[ < ]]> NOW( )
+		<if test="condition!=null and condition!=''">
+			and b.DISTRICT like #{condition}
+		</if>
+	</select>
+	<!--条件平台订单企业-->
+	<select id="tjptDingdanqiye"
+			parameterType="java.lang.String" resultType="com.neu.entity.Inquire">
+		SELECT
+		COUNT( 1 ) number,
+		round( sum( o.PRICE ), 2 ) amount
+		FROM
+		qyjc_sy.qy_order_info o
+		LEFT JOIN qyjc_sy.qy_shop_info s ON s.SHOP_ID = o.SHOP_ID
+		LEFT JOIN qyjc_sy.qy_orgn_base_info b ON b.orgn_id = s.orgn_id
+		LEFT JOIN qyjc_sy.qy_user_info u ON u.USER_ID = o.USER_ID
+		LEFT JOIN qyjc_sy.`qy_user_company` quc ON quc.`USER_ID` = o.`USER_ID`
+		WHERE
+		o.if_remove = 'N'
+		AND o.`STATUS` NOT IN ( 'CANCELED', 'REJECTED', 'DISCONTINUED', 'ADMIN_VOID' )
+		AND o.CREATE_TIME <![CDATA[ < ]]> NOW( )
+		<if test="condition!=null and condition!=''">
+			and quc.ZC_DISTRICT like #{condition}
+		</if>
+	</select>
+	<!-- 服务机构服务项目TOP5排名 -->
+	<select id="ServiceAgencyTOP5"
+			resultType="com.neu.entity.Inquire">
+		select * from (
+		SELECT
+		sn areas,
+		COUNT( 1 ) number
+
+		FROM
+		(
+		SELECT
+		p.*,
+		s2.shop_id AS 'rsi',
+		s2.`SHOP_NAME` AS 'sn',
+		b.ORGN_NATURE AS 'st'
+		FROM
+		qyjc_sy.qy_product_info p
+		LEFT JOIN qyjc_sy.qy_shop_info s ON p.SHOP_ID = s.SHOP_ID
+		LEFT JOIN qyjc_sy.qy_shop_info s2 ON s.root_SHOP_ID = s2.SHOP_ID
+		LEFT JOIN qyjc_sy.qy_orgn_base_info b ON s2.ORGN_ID = b.ORGN_ID
+		WHERE
+		s.pub_flag =
+		'Y'
+		AND s.IF_IDENTIFY = 'Y'
+		AND p.IF_REMOVE = 'N'
+		AND p.ONSALE_FLAG = 'Y'
+		<if test="items!=null and items!=''">
+			AND LOWER( b.ORGN_NATURE ) =#{items}
+		</if>
+		) a
+		GROUP BY
+		a.rsi
+		ORDER BY
+		COUNT( 1 ) DESC
+		LIMIT 0,
+		5) b
+		order by number
+	</select>
+	<!--通过审核的创新券企业分布区域 --><!--这个是错的 这个查的值是空 所以才没环形图-->
+	<select id="passedcxj" resultType="com.neu.entity.Inquire">
+
+	<!--	SELECT
+IF
+	( c.NAME IS NULL, cmc.reg_DISTRICT, c.NAME ) areas,COUNT( 1 ) number
+		FROM
+		kjfwb.cxj_audit ca
+		JOIN kjfwb.`cxj_micro_company` cmc ON
+		cmc.`COMPANY_ID`=ca.`FOREIGN_KEY`
+	LEFT JOIN kjfwb.sys_constant_code c ON c.CODE = cmc.REG_DISTRICT
+	AND c.TYPE = 'DISTRICT'
+		WHERE
+		ca.`STATUS` = 'ACCEPT'
+		AND
+		year(ca.APPLY_TIME)=year(now())
+		GROUP BY IF
+	( c.NAME IS NULL, cmc.reg_DISTRICT, c.NAME )
+	ORDER BY
+	number DESC-->
+		SELECT
+		IF
+		( c.NAME IS NULL, cmc.reg_DISTRICT, c.NAME ) areas,COUNT( 1 ) number
+		FROM
+		kjfwb.cxj_audit ca
+		JOIN kjfwb.`cxj_micro_company` cmc ON
+		cmc.`COMPANY_ID`=ca.`FOREIGN_KEY`
+		LEFT JOIN kjfwb.sys_constant_code c ON c.CODE = cmc.REG_DISTRICT
+		AND c.TYPE = 'DISTRICT'
+		WHERE
+		ca.`STATUS` = 'ACCEPT'
+		AND
+		ca.APPLY_TIME <![CDATA[ < ]]>
+		NOW()
+		AND ca.APPLY_TIME <![CDATA[ > ]]>
+		<!-- STR_TO_DATE( CONCAT ( DATE_FORMAT( NOW( ), '%Y' ), '-01-01' ), '%Y-%m-%d'
+			) -->
+		'2019-01-01'
+		GROUP BY IF
+		( c.NAME IS NULL, cmc.reg_DISTRICT, c.NAME )
+		ORDER BY
+		number DESC
+	</select>
+	<!-- 服务机构本年度有效订单TOP5排名 -->
+	<select id="ValidOrder" resultType="com.neu.entity.Inquire">
+		select * from (
+		SELECT
+		s2.`SHOP_NAME` areas,
+		ROUND( SUM( o.`PRICE` ), 2 ) Amount
+
+		FROM
+		qyjc_sy.qy_order_info o
+		LEFT JOIN qyjc_sy.qy_shop_info s ON o.SHOP_ID = s.SHOP_ID
+		LEFT JOIN qyjc_sy.qy_shop_info s2 ON s.root_SHOP_ID = s2.SHOP_ID
+		LEFT JOIN qyjc_sy.qy_orgn_base_info b ON s2.ORGN_ID = b.ORGN_ID
+		WHERE
+		o.if_remove = 'N'
+		AND o.`STATUS` NOT IN ( 'CANCELED',
+		'REJECTED', 'DISCONTINUED',
+		'ADMIN_VOID' )
+		AND YEAR ( o.CREATE_TIME ) = 2019
+		<if test="revenue!=null and revenue!=''">
+			AND LOWER( b.ORGN_NATURE ) = #{revenue}
+		</if>
+		GROUP BY
+		s2.SHOP_ID
+		ORDER BY
+		SUM( o.`PRICE` ) DESC
+		LIMIT 0,5) a
+		ORDER BY amount
+
+	</select>
+	<!--有效订单数量即有效订单金额年增长情况 -->
+	<select id="Deposit" resultType="com.neu.entity.Inquire">
+		SELECT
+			ii.type_two AS areas,
+			COUNT( ii.id ) AS number
+		FROM
+			qyjc_sy.industrial_innovation ii
+		GROUP BY
+			ii.type_two
+		ORDER BY
+			number ASC
+-- 		SELECT
+-- 		DATE_FORMAT(
+-- 		o.`CREATE_TIME`, '%Y' )
+--
+-- 		areas,ROUND(SUM(o.`PRICE`),2) Amount,
+-- 		count(1)
+-- 		number
+-- 		FROM
+-- 		qyjc_sy.qy_order_info o
+-- 		LEFT JOIN
+-- 		qyjc_sy.qy_shop_info s ON
+-- 		s.SHOP_ID =
+-- 		o.SHOP_ID
+-- 		LEFT JOIN
+-- 		qyjc_sy.qy_user_info u ON u.USER_ID =
+-- 		o.USER_ID
+-- 		WHERE
+-- 		o.if_remove = 'N'
+--
+-- 		AND o.`STATUS` NOT
+-- 		IN (
+-- 		'CANCELED',
+-- 		'REJECTED',
+-- 		'DISCONTINUED',
+-- 		'ADMIN_VOID'
+-- 		)
+-- 		GROUP BY DATE_FORMAT(
+-- 		o.`CREATE_TIME`, '%Y' )
+
+	</select>
+	<!--中间服务机构的地图数据 -->
+	<select id="mapofservice" resultType="com.neu.entity.Inquire">
+		SELECT b.`DISTRICT` areas
+		,COUNT(b.`DISTRICT`) number
+
+		FROM
+		qyjc_sy.qy_shop_info s
+		LEFT JOIN
+		qyjc_sy.qy_orgn_base_info b ON
+		b.ORGN_ID = s.ORGN_ID
+		WHERE
+		s.IF_IDENTIFY
+		= 'Y'
+		AND s.pub_flag = 'Y'
+		AND (
+		s.ORGN_ID IN (
+		SELECT
+		ao.ADMIN_OGRN
+		FROM
+		`lims-sy-1005`.admin_orgn ao
+		)
+		OR
+		s.ORGN_ID IN (
+		SELECT
+		ao2.orgn
+		FROM
+		`lims-sy-1005`.admin_orgn ao2
+		WHERE
+		LOWER(ao2.admin_ogrn) =
+		'sy00'
+		)
+		)
+		GROUP BY b.`DISTRICT`
+		ORDER BY number
+		DESC
+	</select>
+	<!-- 企业的地图数据 -->
+	<select id="mapofenterprise" resultType="com.neu.entity.Inquire">
+		SELECT
+	c.`ZC_DISTRICT` areas,
+	COUNT( 1 ) number
+FROM
+	qyjc_sy.qy_user_info u
+	LEFT JOIN qyjc_sy.qy_user_company c ON u.USER_ID = c.USER_ID
+WHERE
+	u.IF_REMOVED = 'N'
+	AND c.IFEXAMINE = 'Y'
+	AND c.`ZC_CITY` LIKE '%沈阳%'
+GROUP BY
+	c.`ZC_DISTRICT`
+ORDER BY
+	number DESC
+	</select>
+</mapper>

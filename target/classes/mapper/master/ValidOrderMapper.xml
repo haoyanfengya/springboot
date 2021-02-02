@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.neu.dao.master.ValidOrderDao">
+	<!-- 有效订单数量 -->
+	<select id="youxiaodingdannumber" resultType="java.lang.Integer">
+		SELECT
+		count( 1 )
+		FROM
+		qyjc_sy.qy_order_info o
+		WHERE
+		o.if_remove = 'N'
+		AND o.`STATUS` NOT IN
+		( 'CANCELED', 'REJECTED', 'DISCONTINUED',
+		'ADMIN_VOID' )
+		ORDER BY
+		o.`STATUS`
+	</select>
+	<!-- 有效订单金额 -->
+	<select id="youxiaodingdanmoney" resultType="java.lang.Double">
+		SELECT
+		ROUND( SUM(
+		o.PRICE ), 2 )
+		FROM
+		qyjc_sy.qy_order_info o
+		WHERE
+		o.if_remove = 'N'
+		AND
+		o.`STATUS` NOT IN (
+		'CANCELED', 'REJECTED', 'DISCONTINUED',
+		'ADMIN_VOID' )
+		ORDER BY
+		o.`STATUS`
+	</select>
+	<!-- 确认完成订单数量 -->
+	<select id="carryOutnumber" resultType="java.lang.Integer">
+		SELECT
+		count( 1 )
+		FROM
+		qyjc_sy.qy_order_info o
+		WHERE
+		o.if_remove = 'N'
+		AND o.`STATUS` =
+		'CONFIRMED'
+		ORDER BY
+		o.`STATUS`
+	</select>
+	<!-- 确认完成订单金额 -->
+	<select id="carryOutmoney" resultType="java.lang.Double">
+		SELECT
+		ROUND( sum( o.PRICE
+		), 2 )
+		FROM
+		qyjc_sy.qy_order_info o
+		WHERE
+		o.if_remove = 'N'
+		AND o.`STATUS`
+		= 'CONFIRMED'
+		ORDER BY
+		o.`STATUS`
+	</select>
+	<!-- 以提供服务的机构数量 -->
+	<select id="ServiceProvider" resultType="java.lang.Integer">
+		SELECT
+		count( DISTINCT
+		s.ORGN_ID )
+		FROM
+		qyjc_sy.qy_order_info o
+		LEFT JOIN
+		qyjc_sy.qy_shop_info s
+		ON s.SHOP_ID =
+		o.SHOP_ID
+		WHERE
+		o.if_remove = 'N'
+		AND o.`STATUS` NOT IN (
+		'CANCELED',
+		'REJECTED', 'DISCONTINUED',
+		'ADMIN_VOID' )
+	</select>
+	<!--确认完成的机构数量 -->
+	<select id="CompletedServiceAgency"
+		resultType="java.lang.Integer">
+		SELECT
+		count( DISTINCT s.ORGN_ID )
+		FROM
+		qyjc_sy.qy_order_info
+		o
+		LEFT JOIN qyjc_sy.qy_shop_info s ON s.SHOP_ID = o.SHOP_ID
+		WHERE
+		o.if_remove = 'N'
+		AND o.`STATUS` = 'CONFIRMED'
+	</select>
+	<!--已下单用户数量 -->
+	<select id="NumberOfOrdersPlaced" resultType="java.lang.Integer">
+		SELECT
+		count(
+		DISTINCT o.USER_ID )
+		FROM
+		qyjc_sy.qy_order_info o
+		WHERE
+		o.if_remove = 'N'
+		AND o.`STATUS` NOT IN (
+		'CANCELED',
+		'REJECTED',
+		'DISCONTINUED',
+		'ADMIN_VOID')
+	</select>
+	<!--确认完成用户数量 -->
+	<select id="NumberOfCompletedUsers"
+		resultType="java.lang.Integer">
+		SELECT
+		count( DISTINCT o.USER_ID )
+		FROM
+		qyjc_sy.qy_order_info
+		o
+		WHERE
+		o.if_remove = 'N'
+		AND o.`STATUS` = 'CONFIRMED'
+	</select>
+	<!--有效订单及有效订单月增长情况 -->
+	<select id="yuezengzhangnumberandmoney" resultType="com.neu.entity.Inquire">
+		
+SELECT a.areas areas ,a.number number,b.Amount amount FROM (
+SELECT
+		COUNT(o.ORDER_CODE) number,
+		DATE_FORMAT(
+		o.CREATE_TIME, '%Y-%m' ) areas
+		FROM
+		qyjc_sy.qy_order_info o
+		WHERE
+		o.if_remove = 'N'
+		AND o.`STATUS` NOT IN ( 'CANCELED', 'REJECTED',
+		'DISCONTINUED',
+		'ADMIN_VOID' )
+		AND YEAR(o.CREATE_TIME) = YEAR('2019-01-01')
+		GROUP BY
+		DATE_FORMAT( o.CREATE_TIME, '%Y-%m' )
+		ORDER BY
+		DATE_FORMAT(
+		o.CREATE_TIME,
+		'%Y%m')
+	)a,(	
+		SELECT
+		ROUND( SUM( o.PRICE ), 2 ) Amount,
+		DATE_FORMAT(
+		o.CREATE_TIME, '%Y-%m' ) areas
+		FROM
+		qyjc_sy.qy_order_info o
+		WHERE
+		o.if_remove = 'N'
+		AND o.`STATUS` NOT IN ( 'CANCELED', 'REJECTED',
+		'DISCONTINUED',
+		'ADMIN_VOID' )
+		AND YEAR(o.CREATE_TIME) = YEAR('2019-01-01')
+		GROUP BY
+		DATE_FORMAT( o.CREATE_TIME, '%Y-%m' )
+		ORDER BY
+		DATE_FORMAT(
+		o.CREATE_TIME,
+		'%Y-%m'))b
+		WHERE a.areas=b.areas
+	</select>
+	<!--有效订单及有效订单金额年增长情况 -->
+	<select id="nianzengzhangnumberandmoney" resultType="com.neu.entity.Inquire">
+		
+SELECT a.areas areas ,a.number number,b.Amount amount FROM (
+SELECT
+		COUNT( o.ORDER_CODE ) number,
+		DATE_FORMAT(
+		o.CREATE_TIME, '%Y' ) areas
+		FROM
+		qyjc_sy.qy_order_info o
+		WHERE
+		o.if_remove = 'N'
+		AND o.`STATUS` NOT IN ( 'CANCELED', 'REJECTED',
+		'DISCONTINUED',
+		'ADMIN_VOID' )
+		GROUP BY
+		DATE_FORMAT( o.CREATE_TIME, '%Y'
+		)
+		ORDER BY
+		DATE_FORMAT(
+		o.CREATE_TIME,
+		'%Y')
+	)a,(	
+		SELECT
+		ROUND( SUM( o.PRICE ), 2 ) Amount,
+		DATE_FORMAT( o.CREATE_TIME, '%Y' ) areas
+		FROM
+		qyjc_sy.qy_order_info o
+		WHERE
+		o.if_remove = 'N'
+		AND o.`STATUS` NOT IN ( 'CANCELED', 'REJECTED', 'DISCONTINUED',
+		'ADMIN_VOID' )
+		GROUP BY
+		DATE_FORMAT( o.CREATE_TIME, '%Y' )
+		ORDER BY
+		DATE_FORMAT(
+		o.CREATE_TIME,
+		'%Y'))b
+WHERE a.areas=b.areas
+	</select>
+</mapper>
